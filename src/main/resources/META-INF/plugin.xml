@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>org.cookieseller.simplepr</id>
+    <name>SimplePR</name>
+    <vendor email="mathias.beckhaus@c24.de" url="http://www.cookieseller.org">Cookieseller</vendor>
+
+    <description><![CDATA[
+    SimplePR description in CDATA inside the pluxin.xml
+    ]]></description>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>Git4Idea</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <toolWindow id="Simple Pull Requests" anchor="bottom" icon="AllIcons.Actions.Diff" factoryClass="org.cookieseller.simplepr.SimplePRToolWindowFactory"/>
+    </extensions>
+
+</idea-plugin>
