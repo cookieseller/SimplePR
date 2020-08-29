@@ -14,7 +14,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
-        <toolWindow id="Simple Pull Requests" anchor="bottom" icon="AllIcons.Actions.Diff" factoryClass="org.cookieseller.simplepr.SimplePRToolWindowFactory"/>
+        <toolWindow id="Simple Pull Requests" anchor="bottom" icon="AllIcons.Actions.Diff" factoryClass="org.cookieseller.simplepr.ui.SimplePRToolWindowFactory"/>
     </extensions>
 
 </idea-plugin>

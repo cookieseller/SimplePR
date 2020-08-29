@@ -1,4 +1,4 @@
-package org.cookieseller.simplepr.view
+package org.cookieseller.simplepr.ui
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
@@ -10,8 +10,6 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import org.cookieseller.simplepr.services.CredentialStorageService
 import org.cookieseller.simplepr.services.RepositoryService
-import org.cookieseller.simplepr.ui.CredentialDialog
-import org.cookieseller.simplepr.ui.TestBrowser
 import java.awt.BorderLayout
 import java.awt.Desktop
 import java.awt.GridBagConstraints
@@ -20,7 +18,7 @@ import java.net.URI
 import javax.swing.*
 
 
-class MyToolWindow(vertical: Boolean) : SimpleToolWindowPanel(vertical) {
+class SimplePrWindow() : SimpleToolWindowPanel(false) {
     private val combo: ComboBox<String> = ComboBox()
     private val myActiveVCSs: JBList<String> = JBList()
 
@@ -28,20 +26,11 @@ class MyToolWindow(vertical: Boolean) : SimpleToolWindowPanel(vertical) {
         val group = DefaultActionGroup()
         group.add(object : AnAction("Add Remote", "Add Remote", AllIcons.General.Add) {
             override fun actionPerformed(e: AnActionEvent) {
-//                TestBrowser()
+                GrantAccessDialog().showAndGet()
                 if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                     Desktop.getDesktop().browse(URI("https://www.google.com"));
                 }
-//              https://bitbucket.org/site/oauth2/authorize?client_id=EDr8GqbD4ZNN9Y6SFW&response_type=code&state=f9fdc5cd-baa3-45a5-b9f5-4becb4c02f3b
-//                OAuthDialogWrapper().showAndGet()
-
-//                val test = OAuthDialogWrapper()
-//                test.showAndGet()
-//                val dialogWrapper = CredentialDialog()
-//                dialogWrapper.show()
-//                if (dialogWrapper.exitCode == DialogWrapper.OK_EXIT_CODE) {
-//                    propertiesComponent.setValue("org.cookieseller.simplepr", dialogWrapper.getUrlValue())
-//                }
+//              https://bitbucket.org/site/oauth2/authorize?client_id=W4tc62sawzm2uw4fVT&response_type=code&state=f9fdc5cd-baa3-45a5-b9f5-4becb4c02f3b
             }
         })
         group.add(object : AnAction("Refresh", "Reload repository list", AllIcons.Actions.Refresh) {
@@ -61,12 +50,12 @@ class MyToolWindow(vertical: Boolean) : SimpleToolWindowPanel(vertical) {
     }
 
     private fun credentialChallenge(url: String): Boolean {
-        val dialogWrapper = CredentialDialog()
+        val dialogWrapper = GrantAccessDialog()
         dialogWrapper.show()
         if (dialogWrapper.exitCode == DialogWrapper.OK_EXIT_CODE) {
-            val username = dialogWrapper.getUsername()
-            val password = dialogWrapper.getPassword()
-            CredentialStorageService().storeCredentials(url, username, password)
+//            val username = dialogWrapper.getUsername()
+//            val password = dialogWrapper.getPassword()
+//            CredentialStorageService().storeCredentials(url, username, password)
 
             return true
         }

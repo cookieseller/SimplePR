@@ -32,10 +32,10 @@ class RepositoriesTree() : Tree(), Disposable {
             return
         }
 
-        val dialogWrapper = CredentialDialog()
+        val dialogWrapper = GrantAccessDialog()
         dialogWrapper.show()
         if (dialogWrapper.exitCode == DialogWrapper.OK_EXIT_CODE) {
-            credentialStorageService.storeCredentials(url, dialogWrapper.getUsername(), dialogWrapper.getPassword())
+//            credentialStorageService.storeCredentials(url, dialogWrapper.getUsername(), dialogWrapper.getPassword())
         }
     }
 

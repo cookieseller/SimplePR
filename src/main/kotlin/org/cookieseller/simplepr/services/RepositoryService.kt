@@ -9,10 +9,7 @@ import org.apache.http.auth.UsernamePasswordCredentials
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.auth.BasicScheme
 import org.apache.http.impl.client.DefaultHttpClient
-import java.net.URI
 import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
 import java.util.*
 
 
@@ -39,8 +36,11 @@ class RepositoryService {
     }
 
     fun authorize() {
-        val client_id = "wZINP0c4mQyfFppcMyeIFy2GWOLGRVy9"
-        val finalUri = "https://bitbucket.org/site/oauth2/authorize?client_id=".plus(client_id).plus("&response_type=code")
+        val finalUri = "https://bitbucket.org/site/oauth2/authorize?client_id="
+            .plus("W4tc62sawzm2uw4fVT")
+            .plus("&response_type=code")
+            .plus("&state=")
+            .plus(UUID.randomUUID().toString())
 
         val client: HttpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
@@ -66,30 +66,25 @@ class RepositoryService {
                 "UTF-8", false
             )
         )
-        val httpResponse = httpClient.execute(httpGet)
+//        val httpResponse = httpClient.execute(httpGet)
         // Base64.getEncoder().encodeToString(usernameColonPassword.getBytes())
-        val request2 = HttpRequest.newBuilder()
-            .uri(URI.create(repositorySlugFinder))
-            .header("Authorization", basicAuth(username, password))
-            .header("Content-Type", "application/json")
-            .build()
-        val response2 = client.send(request2, HttpResponse.BodyHandlers.ofString())
-        print(response2)
+//        val request2 = HttpRequest.newBuilder()
+//            .uri(URI.create(repositorySlugFinder))
+//            .header("Authorization", basicAuth(username, password))
+//            .header("Content-Type", "application/json")
+//            .build()
+//        val response2 = client.send(request2, HttpResponse.BodyHandlers.ofString())
+//        print(response2)
 
         // Base64.getEncoder().encodeToString(usernameColonPassword.getBytes())
-        val request = HttpRequest.newBuilder()
+//        val request = HttpRequest.newBuilder()
 //            .uri(URI.create("https://bitbucket.org/Superleroy/simpleprbitbucket/pull-requests/"))
-            .uri(URI.create(finalUri))
-            .header("Authorization", basicAuth(username, password))
-            .header("Content-Type", "application/json")
-            .build()
-        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-
-        print(response)
-    }
-
-    private fun basicAuth(username: String, password: String): String {
-        return "Basic " + Base64.getEncoder().encodeToString(("Cookieseller:ZjPfhYFtQgdYYKCcLv3M").toByteArray())
-//        return "Basic " + Base64.getEncoder().encodeToString(("$username:$password").toByteArray())
+//            .uri(URI.create(finalUri))
+//            .header("Authorization", basicAuth(username, password))
+//            .header("Content-Type", "application/json")
+//            .build()
+//        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+//
+//        print(response)
     }
 }

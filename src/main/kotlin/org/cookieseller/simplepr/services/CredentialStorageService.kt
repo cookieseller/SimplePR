@@ -9,18 +9,10 @@ import com.intellij.ide.passwordSafe.PasswordSafe
 
 class CredentialStorageService {
 
-    private val SERVICE_NAME: String = "cookieseller.simplepr"
-
     fun storeCredentials(key: String, username: String, password: CharArray?)
     {
         val credentialAttributes = createCredentialAttributes(key) ?: return
         PasswordSafe.instance.set(credentialAttributes, Credentials(username, password))
-    }
-
-    fun removeCredentials(key: String)
-    {
-        val credentialAttributes = createCredentialAttributes(key) ?: return
-        PasswordSafe.instance.set(credentialAttributes, null)
     }
 
     fun hasCredentials(key: String): Boolean
@@ -49,6 +41,10 @@ class CredentialStorageService {
     }
 
     private fun createCredentialAttributes(key: String): CredentialAttributes? {
-        return CredentialAttributes(generateServiceName(SERVICE_NAME, key))
+        return CredentialAttributes(generateServiceName(Companion.SERVICE_NAME, key))
+    }
+
+    companion object {
+        const val SERVICE_NAME: String = "cookieseller.simplepr"
     }
 }
