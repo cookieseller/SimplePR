@@ -11,11 +11,12 @@ import com.intellij.util.ui.JBUI
 import org.cookieseller.simplepr.services.CredentialStorageService
 import org.cookieseller.simplepr.services.RepositoryService
 import java.awt.BorderLayout
-import java.awt.Desktop
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.net.URI
-import javax.swing.*
+import javax.swing.Box
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
 
 class SimplePrWindow() : SimpleToolWindowPanel(false) {
@@ -24,16 +25,11 @@ class SimplePrWindow() : SimpleToolWindowPanel(false) {
 
     init {
         val group = DefaultActionGroup()
-        group.add(object : AnAction("Add Remote", "Add Remote", AllIcons.General.Add) {
-            override fun actionPerformed(e: AnActionEvent) {
-                GrantAccessDialog().showAndGet()
-                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(URI("https://www.google.com"));
-                }
-//              https://bitbucket.org/site/oauth2/authorize?client_id=W4tc62sawzm2uw4fVT&response_type=code&state=f9fdc5cd-baa3-45a5-b9f5-4becb4c02f3b
-            }
-        })
-        group.add(object : AnAction("Refresh", "Reload repository list", AllIcons.Actions.Refresh) {
+//        group.add(object : AnAction("Add Remote", "Add Remote", AllIcons.General.Add) {
+//            override fun actionPerformed(e: AnActionEvent) {
+//            }
+//        })
+        group.add(object : AnAction("Refresh", "Refresh repository list", AllIcons.Actions.Refresh) {
             override fun actionPerformed(e: AnActionEvent) {
                 populateRepositoryList()
             }
@@ -50,13 +46,10 @@ class SimplePrWindow() : SimpleToolWindowPanel(false) {
     }
 
     private fun credentialChallenge(url: String): Boolean {
-        val dialogWrapper = GrantAccessDialog()
-        dialogWrapper.show()
-        if (dialogWrapper.exitCode == DialogWrapper.OK_EXIT_CODE) {
-//            val username = dialogWrapper.getUsername()
-//            val password = dialogWrapper.getPassword()
-//            CredentialStorageService().storeCredentials(url, username, password)
-
+        val credentialDialog = CredentialDialog()
+        credentialDialog.show()
+        if (credentialDialog.exitCode == DialogWrapper.OK_EXIT_CODE) {
+            CredentialStorageService().storeCredentials(url, credentialDialog.getUsername(), credentialDialog.getPassword())
             return true
         }
 
@@ -64,8 +57,6 @@ class SimplePrWindow() : SimpleToolWindowPanel(false) {
     }
 
     private fun populatePullRequestList() {
-        val model = DefaultListModel<String>()
-
         val url = combo.selectedItem as String
         val credentialService = CredentialStorageService()
         if (!credentialService.hasCredentials(url) and !credentialChallenge(url)) {
@@ -76,7 +67,6 @@ class SimplePrWindow() : SimpleToolWindowPanel(false) {
         val password = CredentialStorageService().getPassword(url) ?: ""
 
         RepositoryService().getPullRequests(combo.selectedItem as String, userName, password)
-        model.addElement("Test")
     }
 
     private fun createCenterPanel(): JComponent {

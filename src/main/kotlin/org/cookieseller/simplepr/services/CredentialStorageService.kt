@@ -9,7 +9,7 @@ import com.intellij.ide.passwordSafe.PasswordSafe
 
 class CredentialStorageService {
 
-    fun storeCredentials(key: String, username: String, password: CharArray?)
+    fun storeCredentials(key: String, username: String, password: String)
     {
         val credentialAttributes = createCredentialAttributes(key) ?: return
         PasswordSafe.instance.set(credentialAttributes, Credentials(username, password))
