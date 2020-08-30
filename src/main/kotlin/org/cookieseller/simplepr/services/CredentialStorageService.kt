@@ -18,7 +18,6 @@ class CredentialStorageService {
     fun hasCredentials(key: String): Boolean
     {
         val credentialAttributes = createCredentialAttributes(key) ?: return false
-        val password = PasswordSafe.instance.getPassword(credentialAttributes)
         val credentials = PasswordSafe.instance.get(credentialAttributes) ?: return false
 
         return credentials.isFulfilled()

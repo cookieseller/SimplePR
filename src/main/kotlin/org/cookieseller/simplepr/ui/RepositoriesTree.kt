@@ -1,7 +1,6 @@
 package org.cookieseller.simplepr.ui
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.treeStructure.Tree
 import org.cookieseller.simplepr.services.CredentialStorageService
 import org.cookieseller.simplepr.services.RepositoryService

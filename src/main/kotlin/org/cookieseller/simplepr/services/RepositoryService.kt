@@ -7,12 +7,6 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
 import git4idea.GitUtil
 import git4idea.push.GitPushSupport
-import org.apache.http.auth.UsernamePasswordCredentials
-import org.apache.http.client.methods.HttpGet
-import org.apache.http.impl.auth.BasicScheme
-import org.apache.http.impl.client.DefaultHttpClient
-import java.net.http.HttpClient
-import java.util.*
 
 
 class RepositoryService {
@@ -43,10 +37,6 @@ class RepositoryService {
 
         val finalUri = listOf(protocol.plus("://").plus(uri), "!api/2.0/repositories", workspace, repository, "pullrequests").joinToString(separator = "/")
         val repositorySlugFinder = listOf(protocol.plus("://").plus(uri), "!api/2.0/repositories", workspace, repository).joinToString(separator = "/")
-
-        val client: HttpClient = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_1_1)
-            .build()
 
         Fuel.get(finalUri)
             .authentication()
