@@ -7,8 +7,8 @@ import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.SimpleToolWindowPanel
-import com.intellij.ui.components.JBList
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import org.cookieseller.simplepr.services.CredentialStorageService
 import org.cookieseller.simplepr.services.RepositoryService
@@ -16,15 +16,14 @@ import org.cookieseller.simplepr.services.UiUpdateInterface
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import javax.swing.Box
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
+import java.util.*
+import javax.swing.*
+import javax.swing.table.DefaultTableModel
 
 
 class SimplePrWindow() : SimpleToolWindowPanel(false) {
     private val combo: ComboBox<String> = ComboBox()
-    private val myActiveVCSs: JBList<String> = JBList()
+    private val myActiveVCSs: JBTable = JBTable()
 
     init {
         val group = DefaultActionGroup()
@@ -70,17 +69,20 @@ class SimplePrWindow() : SimpleToolWindowPanel(false) {
         val password = CredentialStorageService().getPassword(url) ?: ""
 
         val repositoryService = RepositoryService()
-        repositoryService.onUpdateHandler(object: UiUpdateInterface {
+        repositoryService.onUpdateHandler(object : UiUpdateInterface {
             override fun updateUi(json: JsonObject) {
                 val pullRequests = json["values"] as JsonArray<*>
-                for (i in 0 until pullRequests.size) {
-                    val item = pullRequests[i] as JsonObject
-                    combo.addItem(item["description"].toString())
-                }
+                val model = DefaultTableModel(arrayOf("Title", "Author", "Date"), 0)
                 pullRequests.forEach {
                     val item = it as JsonObject
-                    combo.addItem(item["description"].toString())
+
+                    val row = Vector<String>(3)
+                    row.add(item["title"].toString())
+                    row.add((item["author"] as JsonObject)["display_name"].toString())
+                    row.add(item["created_on"].toString())
+                    model.addRow(row)
                 }
+                myActiveVCSs.model = model
             }
         })
         repositoryService.getPullRequests(combo.selectedItem as String, userName, password)
