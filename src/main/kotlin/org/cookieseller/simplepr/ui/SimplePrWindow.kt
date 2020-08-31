@@ -1,5 +1,7 @@
 package org.cookieseller.simplepr.ui
 
+import com.beust.klaxon.JsonArray
+import com.beust.klaxon.JsonObject
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.ui.ComboBox
@@ -10,6 +12,7 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.JBUI
 import org.cookieseller.simplepr.services.CredentialStorageService
 import org.cookieseller.simplepr.services.RepositoryService
+import org.cookieseller.simplepr.services.UiUpdateInterface
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -46,10 +49,10 @@ class SimplePrWindow() : SimpleToolWindowPanel(false) {
     }
 
     private fun credentialChallenge(url: String): Boolean {
-        val credentialDialog = CredentialDialog()
+        val credentialDialog = CredentialDialog(url)
         credentialDialog.show()
         if (credentialDialog.exitCode == DialogWrapper.OK_EXIT_CODE) {
-            CredentialStorageService().storeCredentials(url, credentialDialog.getUsername(), credentialDialog.getPassword())
+            CredentialStorageService().storeCredentials(url, credentialDialog.username, credentialDialog.password)
             return true
         }
 
@@ -59,14 +62,28 @@ class SimplePrWindow() : SimpleToolWindowPanel(false) {
     private fun populatePullRequestList() {
         val url = combo.selectedItem as String
         val credentialService = CredentialStorageService()
-        if (!credentialService.hasCredentials(url) and !credentialChallenge(url)) {
+        if (!credentialService.hasCredentials(url) && !credentialChallenge(url)) {
             return
         }
 
         val userName = CredentialStorageService().getUsername(url) ?: ""
         val password = CredentialStorageService().getPassword(url) ?: ""
 
-        RepositoryService().getPullRequests(combo.selectedItem as String, userName, password)
+        val repositoryService = RepositoryService()
+        repositoryService.onUpdateHandler(object: UiUpdateInterface {
+            override fun updateUi(json: JsonObject) {
+                val pullRequests = json["values"] as JsonArray<*>
+                for (i in 0 until pullRequests.size) {
+                    val item = pullRequests[i] as JsonObject
+                    combo.addItem(item["description"].toString())
+                }
+                pullRequests.forEach {
+                    val item = it as JsonObject
+                    combo.addItem(item["description"].toString())
+                }
+            }
+        })
+        repositoryService.getPullRequests(combo.selectedItem as String, userName, password)
     }
 
     private fun createCenterPanel(): JComponent {

@@ -1,43 +1,77 @@
 package org.cookieseller.simplepr.ui
 
+import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
-import java.awt.GridLayout
-import javax.swing.*
+import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.ui.UIBundle
+import com.intellij.ui.components.JBCheckBox
+import com.intellij.ui.components.JBPasswordField
+import com.intellij.ui.components.JBTextField
+import com.intellij.ui.layout.RowBuilder
+import com.intellij.ui.layout.panel
+import git4idea.i18n.GitBundle
+import javax.swing.JComponent
 
 
-class CredentialDialog() : DialogWrapper(true) {
+class CredentialDialog(url: String) : DialogWrapper(true) {
 
-    private val username = JTextField()
-    private val password = JPasswordField()
+    private val usernameField = JBTextField("", 20).apply { isEditable = true }
+    private val passwordField = JBPasswordField()
+    private var useCredentialHelper = false
+    private lateinit var dialogPanel: DialogPanel
+    private val rememberCheckbox = JBCheckBox(UIBundle.message("auth.remember.cb"), true)
+
+    var username: String
+        get() = usernameField.text
+        internal set(value) {
+            usernameField.text = value
+        }
+
+    var password: String
+        get() = String(passwordField.password!!)
+        internal set(value) {
+            passwordField.text = value
+        }
+
+    var rememberPassword: Boolean
+        get() = rememberCheckbox.isSelected
+        internal set(value) {
+            rememberCheckbox.isSelected = value
+        }
 
     init {
+        title = url
+        setOKButtonText("Login")
         init()
     }
 
     override fun createCenterPanel(): JComponent? {
-        title = "Enter Credentials"
-        val dialogPanel = JPanel(GridLayout(2, 2))
+        dialogPanel = panel {
+            row(GitBundle.message("login.dialog.prompt.enter.credentials")) {}
+            buildCredentialsPanel()
+        }
 
-        val labelUsername = JLabel("Username: ", JLabel.TRAILING)
-        labelUsername.labelFor = username
-
-        dialogPanel.add(labelUsername)
-        dialogPanel.add(username)
-
-        val labelPassword = JLabel("Password: ", JLabel.TRAILING)
-        labelPassword.labelFor = password
-
-        dialogPanel.add(labelPassword)
-        dialogPanel.add(password)
-
-        return dialogPanel;
+        return dialogPanel
     }
 
-    fun getUsername(): String {
-        return username.text ?: ""
+    private fun RowBuilder.buildCredentialsPanel() {
+        row(GitBundle.message("login.dialog.username.label")) { usernameField(growX) }
+        row(GitBundle.message("login.dialog.password.label")) { passwordField(growX) }
+        row { rememberCheckbox() }
     }
 
-    fun getPassword(): String {
-        return password.password.toString()
+    override fun doValidateAll(): List<ValidationInfo> {
+        dialogPanel.apply()
+        if (useCredentialHelper) {
+            return emptyList()
+        }
+        return listOfNotNull(
+            if (username.isBlank())
+                ValidationInfo(GitBundle.message("login.dialog.error.username.cant.be.empty"), usernameField)
+            else null,
+            if (passwordField.password.isEmpty())
+                ValidationInfo(GitBundle.message("login.dialog.error.password.cant.be.empty"), passwordField)
+            else null
+        )
     }
 }
