@@ -15,7 +15,12 @@ import git4idea.push.GitPushSupport
 
 class RepositoryService {
 
+    private val patchLoadedHandler = mutableListOf<UiUpdateInterface>()
     private val requestDoneHandler = mutableListOf<UiUpdateInterface>()
+
+    fun onPatchLoadedHandler(handler: UiUpdateInterface) {
+        patchLoadedHandler.add(handler)
+    }
 
     fun onUpdateHandler(handler: UiUpdateInterface) {
         requestDoneHandler.add(handler)
@@ -44,18 +49,17 @@ class RepositoryService {
         Fuel.get(url)
             .authentication()
             .basic(username, password)
-            .responseString { request, response, result ->
+            .response { request, response, result ->
                 result.success {
-                    val parser: Parser = Parser.default()
-                    val responseObject = parser.parse(StringBuilder(it)) as JsonObject
-                    requestDoneHandler.forEach {
-                        it.updateUi(responseObject)
+
+                    val line = response.body().toStream().bufferedReader().readText()
+                    val patches = RetrievePRChangesService().readAllPatches(line)
+                    patchLoadedHandler.forEach {
+                        it.updateDiff(patches)
                     }
                 }
                 result.failure {
-                    requestDoneHandler.forEach {
-                        it.updateUi(JsonObject())
-                    }
+                    // TODO error
                 }
             }
     }

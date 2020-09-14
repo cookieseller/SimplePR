@@ -11,7 +11,7 @@ class SimplePRToolWindowFactory : ToolWindowFactory {
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val simplePrContent = contentFactory.createContent(null, "SimplePR",false)
 
-        simplePrContent.component = SimplePrWindow()
+        simplePrContent.component = SimplePrWindow(project)
         toolWindow.contentManager.addContent(simplePrContent)
     }
 }
