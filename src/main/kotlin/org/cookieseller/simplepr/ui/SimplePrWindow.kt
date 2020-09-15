@@ -2,36 +2,28 @@ package org.cookieseller.simplepr.ui
 
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
-import com.intellij.diff.requests.SimpleDiffRequest
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diff.impl.patch.FilePatch
-import com.intellij.openapi.diff.impl.patch.PatchReader
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.vcs.FilePath
 import com.intellij.openapi.vcs.changes.Change
-import com.intellij.openapi.vcs.changes.actions.diff.ChangeDiffRequestProducer
-import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.ui.table.JBTable
-import com.intellij.util.EventDispatcher
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
 import com.intellij.vcsUtil.VcsUtil
 import git4idea.GitContentRevision
 import git4idea.GitRevisionNumber
+import org.cookieseller.simplepr.message.UpdatePRListener
 import org.cookieseller.simplepr.services.CredentialStorageService
 import org.cookieseller.simplepr.services.RepositoryService
 import org.cookieseller.simplepr.services.UiUpdateInterface
 import org.cookieseller.simplepr.ui.components.DiffDialog
-import org.cookieseller.simplepr.ui.components.SimplePRTableList
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -40,11 +32,10 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.*
 import javax.swing.*
-import javax.swing.SwingUtilities.invokeLater
 import javax.swing.table.DefaultTableModel
 
 
-class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false) {
+class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRListener {
     private val combo: ComboBox<String> = ComboBox()
     private val state: ComboBox<String> = ComboBox()
     private val myActiveVCSs: JBTable = JBTable()
@@ -63,7 +54,7 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false) {
         })
         group.add(object : AnAction("Refresh", "Refresh repository list", AllIcons.Actions.Refresh) {
             override fun actionPerformed(e: AnActionEvent) {
-                populateRepositoryList()
+                project.messageBus.syncPublisher(UpdatePRListener.TOPIC).updatePR()
             }
         })
 
@@ -235,5 +226,9 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false) {
         panel.add(JBScrollPane(myActiveVCSs), BorderLayout.CENTER)
 
         return panel
+    }
+
+    override fun updatePR() {
+        populatePullRequestList()
     }
 }

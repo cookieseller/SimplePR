@@ -17,4 +17,9 @@
         <toolWindow id="Simple Pull Requests" anchor="bottom" icon="AllIcons.Actions.Diff" factoryClass="org.cookieseller.simplepr.ui.SimplePRToolWindowFactory"/>
     </extensions>
 
+    <projectListeners>
+        <listener class="org.cookieseller.simplepr.ui.SimplePrWindow"
+                  topic="org.cookieseller.simplepr.message.UpdatePRListener" />
+    </projectListeners>
+
 </idea-plugin>
