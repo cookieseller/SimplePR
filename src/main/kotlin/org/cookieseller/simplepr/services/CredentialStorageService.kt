@@ -15,6 +15,12 @@ class CredentialStorageService {
         PasswordSafe.instance.set(credentialAttributes, Credentials(username, password))
     }
 
+    fun removeCredentials(key: String)
+    {
+        val credentialAttributes = createCredentialAttributes(key) ?: return
+        PasswordSafe.instance.set(credentialAttributes, null)
+    }
+
     fun hasCredentials(key: String): Boolean
     {
         val credentialAttributes = createCredentialAttributes(key) ?: return false

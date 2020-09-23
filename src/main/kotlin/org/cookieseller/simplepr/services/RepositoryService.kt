@@ -64,30 +64,6 @@ class RepositoryService {
             }
     }
 
-    fun getPullRequest(url: String, id: String, username: String, password: String) {
-        val match = Regex("(https|http).*?@(.*?)/(.*?)/(.*?)/?$").find(url) ?: return
-        val (protocol, uri, workspace, repository) = match.destructured
-
-        val finalUri = "$protocol://$uri/!api/2.0/repositories/$workspace/$repository/pullrequests/$id"
-        Fuel.get(finalUri)
-            .authentication()
-            .basic(username, password)
-            .responseString { request, response, result ->
-                result.success {
-                    val parser: Parser = Parser.default()
-                    val responseObject = parser.parse(StringBuilder(it)) as JsonObject
-                    requestDoneHandler.forEach {
-                        it.updateUi(responseObject)
-                    }
-                }
-                result.failure {
-                    requestDoneHandler.forEach {
-                        it.updateUi(JsonObject())
-                    }
-                }
-            }
-    }
-
     fun getPullRequests(url: String, state: String, username: String, password: String) {
         val match = Regex("(https|http).*?@(.*?)/(.*?)/(.*?)/?$").find(url) ?: return
         val (protocol, uri, workspace, repository) = match.destructured

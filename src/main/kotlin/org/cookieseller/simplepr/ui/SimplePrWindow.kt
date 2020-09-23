@@ -5,6 +5,7 @@ import com.beust.klaxon.JsonObject
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.diff.impl.patch.FilePatch
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
@@ -19,6 +20,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.vcsUtil.VcsUtil
 import git4idea.GitContentRevision
 import git4idea.GitRevisionNumber
+import org.cookieseller.simplepr.message.OpenPRListener
 import org.cookieseller.simplepr.message.UpdatePRListener
 import org.cookieseller.simplepr.services.CredentialStorageService
 import org.cookieseller.simplepr.services.RepositoryService
@@ -35,7 +37,7 @@ import javax.swing.*
 import javax.swing.table.DefaultTableModel
 
 
-class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRListener {
+class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false) {
     private val combo: ComboBox<String> = ComboBox()
     private val state: ComboBox<String> = ComboBox()
     private val myActiveVCSs: JBTable = JBTable()
@@ -46,10 +48,7 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRL
         val group = DefaultActionGroup()
         group.add(object : AnAction("Add Remote", "Add Remote", AllIcons.General.Add) {
             override fun actionPerformed(e: AnActionEvent) {
-//                val contentParser = PatchContentParser(false)
-//                val proxyProducer = ChangeDiffRequestProducer.create(project, change)
-//                val request: SimpleDiffRequest = createSimpleRequest(project, change, context, indicator)
-//                combo.addItem("test")
+                combo.addItem("test")
             }
         })
         group.add(object : AnAction("Refresh", "Refresh repository list", AllIcons.Actions.Refresh) {
@@ -57,8 +56,21 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRL
                 project.messageBus.syncPublisher(UpdatePRListener.TOPIC).updatePR()
             }
         })
+        group.add(object : AnAction("Remove", "Remove Credentials", AllIcons.Actions.GC) {
+            override fun actionPerformed(e: AnActionEvent) {
+                val url = combo.selectedItem as String
+                CredentialStorageService().removeCredentials(url)
+            }
+        })
 
-//        setContent(SimplePRTableList().create())
+
+        project.messageBus.connect().apply {
+            subscribe(UpdatePRListener.TOPIC, object: UpdatePRListener {
+                override fun updatePR() {
+                    populateRepositoryList()
+                }
+            })
+        }
         setContent(createCenterPanel())
         combo.addActionListener { populatePullRequestList() }
         state.addActionListener { populatePullRequestList() }
@@ -68,7 +80,7 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRL
 
     private fun populateRepositoryList() {
         repositoryService.getRepositoriesForProject().forEach {
-            combo.addItem(it)
+            this.combo.addItem(it)
         }
     }
 
@@ -128,7 +140,7 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRL
                     emptyList.add(change)
                 }
                 invokeAndWaitIfNeeded {
-                    DiffDialog(project, emptyList).show()
+//                    DiffDialog(project, emptyList).show()
                 }
 //                val contentParser = PatchReader.PatchContentParser(false)
 //                val proxyProducer = ChangeDiffRequestProducer.create(project, change)
@@ -170,7 +182,6 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRL
         val panel = JPanel(BorderLayout())
 
         combo.setMinimumAndPreferredWidth(JBUIScale.scale(500))
-        populateRepositoryList()
 
         val chooserPanel = JPanel(GridBagLayout())
         val scopesLabel = JLabel("Repositories:")
@@ -209,8 +220,10 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRL
                 val point: Point = mouseEvent.getPoint()
                 val row = table.rowAtPoint(point)
                 if (mouseEvent.clickCount == 2 && table.selectedRow != -1) {
-                    val diffUrl = myActiveVCSs.getValueAt(row, 4) as String
                     val url = combo.selectedItem as String
+                    val diffUrl = myActiveVCSs.getValueAt(row, 4) as String
+                    val title = myActiveVCSs.getValueAt(row, 1) as String
+                    project.messageBus.syncPublisher(OpenPRListener.TOPIC).openPR(title, repositoryService)
 
                     val userName = CredentialStorageService().getUsername(url) ?: ""
                     val password = CredentialStorageService().getPassword(url) ?: ""
@@ -226,9 +239,5 @@ class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false), UpdatePRL
         panel.add(JBScrollPane(myActiveVCSs), BorderLayout.CENTER)
 
         return panel
-    }
-
-    override fun updatePR() {
-        populatePullRequestList()
     }
 }
