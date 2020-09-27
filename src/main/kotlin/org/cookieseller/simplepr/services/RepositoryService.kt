@@ -7,13 +7,16 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.result.failure
 import com.github.kittinunf.result.success
 import com.intellij.dvcs.DvcsUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vcs.ProjectLevelVcsManager
 import git4idea.GitUtil
 import git4idea.push.GitPushSupport
+import org.cookieseller.simplepr.message.DiffLoadListener
+import org.cookieseller.simplepr.message.OpenPRListener
 
 
-class RepositoryService {
+class RepositoryService(private val project: Project) {
 
     private val patchLoadedHandler = mutableListOf<UiUpdateInterface>()
     private val requestDoneHandler = mutableListOf<UiUpdateInterface>()
@@ -54,12 +57,11 @@ class RepositoryService {
 
                     val line = response.body().toStream().bufferedReader().readText()
                     val patches = RetrievePRChangesService().readAllPatches(line)
-                    patchLoadedHandler.forEach {
-                        it.updateDiff(patches)
-                    }
+                    project.messageBus.syncPublisher(DiffLoadListener.TOPIC).diffLoaded(patches)
                 }
                 result.failure {
-                    // TODO error
+                    val error = response.body().toStream().bufferedReader().readText()
+                    project.messageBus.syncPublisher(DiffLoadListener.TOPIC).loadingError(error)
                 }
             }
     }

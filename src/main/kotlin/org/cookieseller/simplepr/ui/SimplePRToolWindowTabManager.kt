@@ -19,6 +19,8 @@ import com.intellij.util.ui.tree.TreeUtil
 import com.intellij.vcsUtil.VcsUtil
 import git4idea.GitContentRevision
 import git4idea.GitRevisionNumber
+import org.cookieseller.simplepr.message.DiffLoadListener
+import org.cookieseller.simplepr.message.OpenPRListener
 import org.cookieseller.simplepr.services.RepositoryService
 import org.cookieseller.simplepr.services.UiUpdateInterface
 import java.awt.GridBagLayout
@@ -61,23 +63,28 @@ class SimplePRToolWindowTabManager(val project: Project, private val repositoryS
     }
 
     private fun dataLoadHandler() {
-        repositoryService.onPatchLoadedHandler(object: UiUpdateInterface {
-            override fun updateUi(json: JsonObject) {
-            }
-
-            override fun updateDiff(lines: List<FilePatch>) {
-                val emptyList: MutableList<Change> = mutableListOf()
-                lines.forEach {
-                    val change = createChangeFromPatch("651e66e0ae11d9768161b53fa3daac7a959679ce", "8e31bf75e0a446dc5c2693a1e3c4ec7ae9a29186", it)
-                    emptyList.add(change)
+        project.messageBus.connect().apply {
+            subscribe(DiffLoadListener.TOPIC, object : DiffLoadListener {
+                override fun diffLoaded(lines: List<FilePatch>) {
+                    val emptyList: MutableList<Change> = mutableListOf()
+                    lines.forEach {
+                        val beforeRef = it.beforeVersionId
+                        val afterRef = it.afterVersionId
+                        if (beforeRef != null && afterRef != null) {
+                            val change = createChangeFromPatch(beforeRef, afterRef, it)
+                            emptyList.add(change)
+                        }
+                    }
+                    invokeAndWaitIfNeeded {
+                        content.component.add(createCenterPanel(emptyList))
+                    }
                 }
-                invokeAndWaitIfNeeded {
-                    content.component.add(createCenterPanel(emptyList))
-//                    DiffDialog(project, emptyList).show()
-                }
 
-            }
-        })
+                override fun loadingError(error: String) {
+                    TODO("Not yet implemented")
+                }
+            })
+        }
     }
 
     private fun createChangeFromPatch(beforeRef: String, afterRef: String, patch: FilePatch): Change {

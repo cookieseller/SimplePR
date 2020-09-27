@@ -20,10 +20,14 @@ class SimplePRToolWindowFactory : ToolWindowFactory {
         project.messageBus.connect().apply {
             subscribe(OpenPRListener.TOPIC, object : OpenPRListener {
                 override fun openPR(name: String, repositoryService: RepositoryService) {
-                    val tab = SimplePRToolWindowTabManager(project, repositoryService).createTab(name)
-                    toolWindow.contentManager.addContent(tab)
+                    addTab(project, repositoryService, name, toolWindow)
                 }
             })
         }
+    }
+
+    private fun addTab(project: Project, repositoryService: RepositoryService, name: String, toolWindow: ToolWindow) {
+        val tab = SimplePRToolWindowTabManager(project, repositoryService).createTab(name)
+        toolWindow.contentManager.addContent(tab)
     }
 }

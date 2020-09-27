@@ -37,12 +37,11 @@ import javax.swing.*
 import javax.swing.table.DefaultTableModel
 
 
-class SimplePrWindow(project: Project) : SimpleToolWindowPanel(false) {
+class SimplePrWindow(private val project: Project) : SimpleToolWindowPanel(false) {
     private val combo: ComboBox<String> = ComboBox()
     private val state: ComboBox<String> = ComboBox()
     private val myActiveVCSs: JBTable = JBTable()
-    private val project: Project = project;
-    private val repositoryService: RepositoryService = RepositoryService()
+    private val repositoryService: RepositoryService = RepositoryService(project)
 
     init {
         val group = DefaultActionGroup()
